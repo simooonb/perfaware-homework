@@ -21,7 +21,7 @@ object InstructionDecoder {
   private def decodeSingle(input: Array[Byte]): String = {
     input match {
       // 100010DW MODREGR/M
-      // ^^ -30    3  2  3
+      // ^^ -30    2  3  3
       case Array(first, second) if (first >> 2) == -30 =>
         decodeMov(first, second)
 
@@ -38,15 +38,8 @@ object InstructionDecoder {
     val reg = (b2 << 2) >> 5
     val rm = (b2 << 5) >> 5
 
-//    println(b1.toInt.toBinaryString.takeRight(8))
-//    println(b2.toInt.toBinaryString.takeRight(8))
-//    println(s"regIsDestination $regIsDestination")
-//    println(s"wide $wide")
-
     val regRegister = movRegisterDecode(reg, wide)
     val rmRegister = movRegisterDecode(rm, wide)
-//    println(s"regRegister $regRegister")
-//    println(s"rmRegister $rmRegister")
 
     if (regIsDestination)
       s"mov $regRegister, $rmRegister"
