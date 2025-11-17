@@ -21,6 +21,13 @@ class InstructionDecoderTest extends AnyWordSpec with Matchers {
 
       InstructionDecoder.decodeAll(input).mkString("\n") shouldBe expected
     }
+
+    "decode many MOV instructions with effective address calculation" in {
+      val input    = readResourceAsBytes("hw2/listing_0039_more_movs")
+      val expected = readResourceAsString("hw2/listing_0039_more_movs.asm")
+
+      InstructionDecoder.decodeAll(input).mkString("\n") shouldBe expected
+    }
   }
 
   private def readResourceAsBytes(filename: String): Array[Byte] =
