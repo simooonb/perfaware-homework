@@ -28,6 +28,14 @@ class InstructionDecoderTest extends AnyWordSpec with Matchers {
 
       InstructionDecoder.decodeAll(input).mkString("\n") shouldBe expected
     }
+
+    // fixme: does not pass because of some int decoding instead of unsigned int decoding
+    "decode ADD, SUB, CMP, JNZ" in {
+      val input    = readResourceAsBytes("hw3/listing_0041_add_sub_cmp_jnz")
+      val expected = readResourceAsString("hw3/listing_0041_add_sub_cmp_jnz.asm")
+
+      InstructionDecoder.decodeAll(input).mkString("\n") shouldBe expected
+    }
   }
 
   private def readResourceAsBytes(filename: String): Array[Byte] =
