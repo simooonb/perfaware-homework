@@ -1,5 +1,7 @@
 package bar.simon.perfaware.part1
 
+import bar.simon.perfaware.part1.Instruction._
+
 import scala.annotation.tailrec
 
 object InstructionDecoder {
@@ -368,33 +370,6 @@ object InstructionDecoder {
       ((byte & 0xff) >>> 6 == 2) || // "10"
       (((byte & 0xff) >>> 6 == 0) && ((byte & 7) == 6))
     }
-  }
-
-  sealed trait Instruction {
-    val opcode: String
-
-    def isNotMov: Boolean = this match {
-      case Mov => false
-      case Sub => true
-      case Add => true
-      case Cmp => true
-    }
-  }
-
-  case object Mov extends Instruction {
-    override val opcode: String = "mov"
-  }
-
-  case object Add extends Instruction {
-    override val opcode: String = "add"
-  }
-
-  case object Sub extends Instruction {
-    override val opcode: String = "sub"
-  }
-
-  case object Cmp extends Instruction {
-    override val opcode: String = "cmp"
   }
 
   private val jumpLookupTable: Map[String, String] = Map(

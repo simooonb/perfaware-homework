@@ -4,10 +4,10 @@ mov si, bx
 mov dh, al
 mov cl, 12
 mov ch, -12
-mov cx, 3072
-mov cx, -2817
-mov dx, 27663
-mov dx, -27408
+mov cx, 12
+mov cx, -12
+mov dx, 3948
+mov dx, -3948
 mov al, [bx + si]
 mov bx, [bp + di]
 mov dx, [bp]
