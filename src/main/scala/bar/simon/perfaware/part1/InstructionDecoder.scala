@@ -176,7 +176,7 @@ object InstructionDecoder {
   def decodeImmediateToRegister(b: Byte, data: Array[Byte], instruction: Instruction): String = {
     val reg       = (b << 5) >> 5
     val wide      = b.isImmediateToRegisterWide
-    val immediate = BigInt(data).toInt
+    val immediate = BigInt(data.reverse).toInt
     val register  =
       if (instruction.isNotMov && wide) "ax"
       else if (instruction.isNotMov) "al"
@@ -329,7 +329,7 @@ object InstructionDecoder {
       (byte >>> 1 & 0xff).toBinaryString == "11110" // "0011110"
 
     def isImmediateToRegisterWide: Boolean =
-      byte.toBinaryString.last == '1'
+      ((byte >>> 3) & 1) == 1
 
     def isMovImmediateToRegisterMemory: Boolean =
       byte >> 1 == -29 // "1100011"

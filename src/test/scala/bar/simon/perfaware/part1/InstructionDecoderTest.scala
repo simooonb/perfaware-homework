@@ -38,6 +38,22 @@ class InstructionDecoderTest extends AnyWordSpec with Matchers {
     }
   }
 
+  "Register simulation" should {
+    "decode immediate MOVs" in {
+      val input    = readResourceAsBytes("hw4/listing_0043_immediate_movs")
+      val expected = readResourceAsString("hw4/listing_0043_immediate_movs.asm")
+
+      InstructionDecoder.decodeAll(input).mkString("\n") shouldBe expected
+    }
+
+    "decode register MOVs" in {
+      val input    = readResourceAsBytes("hw4/listing_0044_register_movs")
+      val expected = readResourceAsString("hw4/listing_0044_register_movs.asm")
+
+      InstructionDecoder.decodeAll(input).mkString("\n") shouldBe expected
+    }
+  }
+
   private def readResourceAsBytes(filename: String): Array[Byte] =
     Files.readAllBytes(Path.of(getClass.getResource(filename).toURI))
 
