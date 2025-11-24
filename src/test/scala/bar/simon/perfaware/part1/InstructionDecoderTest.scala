@@ -76,7 +76,8 @@ class InstructionDecoderTest extends AnyWordSpec with Matchers {
           |      sp: 0x0005 (5)
           |      bp: 0x0006 (6)
           |      si: 0x0007 (7)
-          |      di: 0x0008 (8)""".stripMargin
+          |      di: 0x0008 (8)
+          |   flags: """.stripMargin
 
       RegisterSimulation.reset()
       RegisterSimulation.simulateFromAsm(InstructionDecoder.decodeAll(input)) shouldBe expected
@@ -109,7 +110,38 @@ class InstructionDecoderTest extends AnyWordSpec with Matchers {
           |      sp: 0x0001 (1)
           |      bp: 0x0002 (2)
           |      si: 0x0003 (3)
-          |      di: 0x0004 (4)""".stripMargin
+          |      di: 0x0004 (4)
+          |   flags: """.stripMargin
+
+      RegisterSimulation.reset()
+      RegisterSimulation.simulateFromAsm(InstructionDecoder.decodeAll(input)) shouldBe expected
+    }
+
+    "simulate ADD, SUB, CMP" in {
+      val input = readResourceAsBytes("hw5/listing_0046_add_sub_cmp")
+      // idk why it's read weirdly
+      //      val expected = readResourceAsString("hw5/listing_0046_add_sub_cmp.txt")
+
+      val expected =
+        """mov bx, 61443 ; bx:0x0->0xf003
+          |mov cx, 3841 ; cx:0x0->0xf01
+          |sub bx, cx ; bx:0xf003->0xe102 flags:->S
+          |mov sp, 998 ; sp:0x0->0x3e6
+          |mov bp, 999 ; bp:0x0->0x3e7
+          |cmp bp, sp ; flags:S->
+          |add bp, 1027 ; bp:0x3e7->0x7ea
+          |sub bp, 2026 ; bp:0x7ea->0x0 flags:->Z
+          |
+          |Final registers:
+          |      ax: 0x0000 (0)
+          |      bx: 0xe102 (57602)
+          |      cx: 0x0f01 (3841)
+          |      dx: 0x0000 (0)
+          |      sp: 0x03e6 (998)
+          |      bp: 0x0000 (0)
+          |      si: 0x0000 (0)
+          |      di: 0x0000 (0)
+          |   flags: Z""".stripMargin
 
       RegisterSimulation.reset()
       RegisterSimulation.simulateFromAsm(InstructionDecoder.decodeAll(input)) shouldBe expected

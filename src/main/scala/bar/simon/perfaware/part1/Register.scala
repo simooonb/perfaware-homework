@@ -7,3 +7,15 @@ case class Register(
 )
 
 case class RegisterAccess(index: Int, high: Boolean, low: Boolean)
+
+case class Flag(name: String, var value: Boolean) {
+  def setStr(newValue: Boolean): String =
+    if (newValue != value && newValue)
+      s"->$name"
+    else if (newValue != value)
+      s"$name->"
+    else
+      ""
+
+  def str: String = if (value) name else ""
+}

@@ -6,10 +6,11 @@ sealed trait Instruction {
   val opcode: String
 
   def isNotMov: Boolean = this match {
-    case Mov => false
-    case Sub => true
-    case Add => true
-    case Cmp => true
+    case Mov     => false
+    case Sub     => true
+    case Add     => true
+    case Cmp     => true
+    case Unknown => true
   }
 }
 
@@ -28,5 +29,9 @@ object Instruction {
 
   case object Cmp extends Instruction {
     override val opcode: String = "cmp"
+  }
+
+  case object Unknown extends Instruction {
+    override val opcode: String = "?"
   }
 }
