@@ -5,18 +5,21 @@ import bar.simon.perfaware.part1.Instruction._
 import scala.annotation.tailrec
 
 object InstructionDecoder {
-  def decodeAll(input: Array[Byte]): Array[String] = {
-    val output = Array.ofDim[String](2)
-    output(0) = "bits 16"
-    output(1) = ""
+  def decodeAll(input: Array[Byte]): Array[(String, Int)] = {
+    val output = Array.ofDim[(String, Int)](2)
+    output(0) = ("bits 16", 0)
+    output(1) = ("", 0)
 
     val result = readByGroup(0, input, Nil)
 
     output ++ result.toArray
   }
 
+  def decodeAllStr(input: Array[Byte]): Array[String] =
+    decodeAll(input).map { case (str, _) => str }
+
   @tailrec
-  private def readByGroup(i: Int, input: Array[Byte], acc: List[String]): List[String] = {
+  private def readByGroup(i: Int, input: Array[Byte], acc: List[(String, Int)]): List[(String, Int)] = {
     if (i >= input.length) {
       acc.reverse
     } else {
@@ -24,8 +27,10 @@ object InstructionDecoder {
 
       if (current.isJump) {
         val result = decodeJump(jumpLookupTable(current.toBinaryString), input(i + 1))
+        val next   = i + 2
+        val size   = next - i
 
-        readByGroup(i + 2, input, result :: acc)
+        readByGroup(next, input, (result, size) :: acc)
       } else if (
         current.isMovFromToMemoryOrRegister ||
         current.isAddFromToMemoryOrRegister ||
@@ -39,8 +44,9 @@ object InstructionDecoder {
           else Sub
 
         val (nextIndex, result) = decodeFromToMemoryOrRegister(input, i, current, instruction)
+        val size                = nextIndex - i
 
-        readByGroup(nextIndex, input, result :: acc)
+        readByGroup(nextIndex, input, (result, size) :: acc)
       } else if (
         current.isMovImmediateToRegister ||
         current.isAddImmediateToAccumulator ||
@@ -54,8 +60,9 @@ object InstructionDecoder {
           else Sub
 
         val (result, next) = decodeImmediateToRegister(input, i, current, instruction)
+        val size           = next - i
 
-        readByGroup(next, input, result :: acc)
+        readByGroup(next, input, (result, size) :: acc)
       } else if (
         current.isMovImmediateToRegisterMemory ||
         current.isAddImmediateToRegisterMemory ||
@@ -63,10 +70,11 @@ object InstructionDecoder {
         current.isCmpImmediateFromRegisterMemory
       ) {
         val (nextIndex, result) = decodeImmediateToRegisterMemory(input, i, current)
+        val size                = nextIndex - i
 
-        readByGroup(nextIndex, input, result :: acc)
+        readByGroup(nextIndex, input, (result, size) :: acc)
       } else {
-        readByGroup(i + 1, input, "unknown operation" :: acc)
+        readByGroup(i + 1, input, ("unknown operation", 0) :: acc)
       }
     }
   }
@@ -179,7 +187,7 @@ object InstructionDecoder {
     val reg       = (b << 5) >> 5
     val wide      = b.isImmediateToRegisterWide
     val immediate = BigInt(1, data.reverse).toInt
-    val register =
+    val register  =
       if (instruction.isNotMov && wide) "ax"
       else if (instruction.isNotMov) "al"
       else movRegisterDecode(reg, wide)

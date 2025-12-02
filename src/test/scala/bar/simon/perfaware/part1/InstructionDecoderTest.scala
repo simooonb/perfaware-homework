@@ -12,21 +12,21 @@ class InstructionDecoderTest extends AnyWordSpec with Matchers {
       val input    = readResourceAsBytes("hw1/listing_0037_single_register_mov")
       val expected = readResourceAsString("hw1/listing_0037_single_register_mov.asm")
 
-      InstructionDecoder.decodeAll(input).mkString("\n") shouldBe expected
+      InstructionDecoder.decodeAllStr(input).mkString("\n") shouldBe expected
     }
 
     "decode many MOV instructions" in {
       val input    = readResourceAsBytes("hw1/listing_0038_many_register_mov")
       val expected = readResourceAsString("hw1/listing_0038_many_register_mov.asm")
 
-      InstructionDecoder.decodeAll(input).mkString("\n") shouldBe expected
+      InstructionDecoder.decodeAllStr(input).mkString("\n") shouldBe expected
     }
 
     "decode many MOV instructions with effective address calculation" in {
       val input    = readResourceAsBytes("hw2/listing_0039_more_movs")
       val expected = readResourceAsString("hw2/listing_0039_more_movs.asm")
 
-      InstructionDecoder.decodeAll(input).mkString("\n") shouldBe expected
+      InstructionDecoder.decodeAllStr(input).mkString("\n") shouldBe expected
     }
 
     // fixme: does not pass because of some int decoding instead of unsigned int decoding
@@ -34,7 +34,7 @@ class InstructionDecoderTest extends AnyWordSpec with Matchers {
       val input    = readResourceAsBytes("hw3/listing_0041_add_sub_cmp_jnz")
       val expected = readResourceAsString("hw3/listing_0041_add_sub_cmp_jnz.asm")
 
-      InstructionDecoder.decodeAll(input).mkString("\n") shouldBe expected
+      InstructionDecoder.decodeAllStr(input).mkString("\n") shouldBe expected
     }
   }
 
@@ -43,14 +43,14 @@ class InstructionDecoderTest extends AnyWordSpec with Matchers {
       val input    = readResourceAsBytes("hw4/listing_0043_immediate_movs")
       val expected = readResourceAsString("hw4/listing_0043_immediate_movs.asm")
 
-      InstructionDecoder.decodeAll(input).mkString("\n") shouldBe expected
+      InstructionDecoder.decodeAllStr(input).mkString("\n") shouldBe expected
     }
 
     "decode register MOVs" in {
       val input    = readResourceAsBytes("hw4/listing_0044_register_movs")
       val expected = readResourceAsString("hw4/listing_0044_register_movs.asm")
 
-      InstructionDecoder.decodeAll(input).mkString("\n") shouldBe expected
+      InstructionDecoder.decodeAllStr(input).mkString("\n") shouldBe expected
     }
 
     "simulate immediate MOVs" in {
@@ -141,6 +141,68 @@ class InstructionDecoderTest extends AnyWordSpec with Matchers {
           |      bp: 0x0000 (0)
           |      si: 0x0000 (0)
           |      di: 0x0000 (0)
+          |   flags: Z""".stripMargin
+
+      RegisterSimulation.reset()
+      RegisterSimulation.simulateFromAsm(InstructionDecoder.decodeAll(input)) shouldBe expected
+    }
+
+    "simulate IP register" in {
+      val input = readResourceAsBytes("hw6/listing_0048_ip_register")
+      // idk why it's read weirdly
+      //      val expected = readResourceAsString("hw6/listing_0048_ip_register.txt")
+
+      val expected =
+        """mov cx, 200 ; cx:0x0->0xc8 ip:0x0->0x3
+          |mov bx, cx ; bx:0x0->0xc8 ip:0x3->0x5
+          |add cx, 1000 ; cx:0xc8->0x4b0 ip:0x5->0x9
+          |mov bx, 2000 ; bx:0xc8->0x7d0 ip:0x9->0xc
+          |sub cx, bx ; cx:0x4b0->0xfce0 flags:->S ip:0xc->0xe
+          |
+          |Final registers:
+          |      ax: 0x0000 (0)
+          |      bx: 0x07d0 (2000)
+          |      cx: 0xfce0 (64736)
+          |      dx: 0x0000 (0)
+          |      sp: 0x0000 (0)
+          |      bp: 0x0000 (0)
+          |      si: 0x0000 (0)
+          |      di: 0x0000 (0)
+          |      ip: 0x000e (14)
+          |   flags: S""".stripMargin
+
+      RegisterSimulation.reset()
+      RegisterSimulation.simulateFromAsm(InstructionDecoder.decodeAll(input)) shouldBe expected
+    }
+
+    "simulate conditional jumps" in {
+      val input = readResourceAsBytes("hw6/listing_0049_conditional_jumps")
+      // idk why it's read weirdly
+      //      val expected = readResourceAsString("hw6/listing_0049_conditional_jumps.txt")
+
+      val expected =
+        """mov cx, 3 ; cx:0x0->0x3 ip:0x0->0x3
+          |mov bx, 1000 ; bx:0x0->0x3e8 ip:0x3->0x6
+          |add bx, 10 ; bx:0x3e8->0x3f2 ip:0x6->0x9
+          |sub cx, 1 ; cx:0x3->0x2 ip:0x9->0xc
+          |jne $-6 ; ip:0xc->0x6
+          |add bx, 10 ; bx:0x3f2->0x3fc ip:0x6->0x9
+          |sub cx, 1 ; cx:0x2->0x1 ip:0x9->0xc
+          |jne $-6 ; ip:0xc->0x6
+          |add bx, 10 ; bx:0x3fc->0x406 ip:0x6->0x9
+          |sub cx, 1 ; cx:0x1->0x0 ip:0x9->0xc flags:->Z
+          |jne $-6 ; ip:0xc->0xe
+          |
+          |Final registers:
+          |      ax: 0x0000 (0)
+          |      bx: 0x0406 (1030)
+          |      cx: 0x0000 (0)
+          |      dx: 0x0000 (0)
+          |      sp: 0x0000 (0)
+          |      bp: 0x0000 (0)
+          |      si: 0x0000 (0)
+          |      di: 0x0000 (0)
+          |      ip: 0x000e (14)
           |   flags: Z""".stripMargin
 
       RegisterSimulation.reset()

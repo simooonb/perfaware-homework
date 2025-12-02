@@ -5,8 +5,8 @@ sealed trait Operand {
 }
 
 object Operand {
-  case class Immediate(value: Int) extends Operand {
-    val str: String = value.toString
+  case class Immediate(value: Char) extends Operand {
+    val str: String = value.toInt.toString
   }
 
   case class Register(value: String) extends Operand {
