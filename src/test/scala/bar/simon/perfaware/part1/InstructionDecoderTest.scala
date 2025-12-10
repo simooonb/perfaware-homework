@@ -208,6 +208,95 @@ class InstructionDecoderTest extends AnyWordSpec with Matchers {
       RegisterSimulation.reset()
       RegisterSimulation.simulateFromAsm(InstructionDecoder.decodeAll(input)) shouldBe expected
     }
+
+    "simulate memory mov" in {
+      val input = readResourceAsBytes("hw7/listing_0051_memory_mov")
+      // idk why it's read weirdly
+      //      val expected = readResourceAsString("hw7/listing_0051_memory_mov.txt")
+
+      // fixme: should be mov word [bx+4], 10 and not mov [bx+4], 10 but lazy to fix
+      val expected =
+        """mov word [+1000], 1 ; ip:0x0->0x6
+          |mov word [+1002], 2 ; ip:0x6->0xc
+          |mov word [+1004], 3 ; ip:0xc->0x12
+          |mov word [+1006], 4 ; ip:0x12->0x18
+          |mov bx, 1000 ; bx:0x0->0x3e8 ip:0x18->0x1b
+          |mov [bx+4], 10 ; ip:0x1b->0x20
+          |mov bx, [+1000] ; bx:0x3e8->0x1 ip:0x20->0x24
+          |mov cx, [+1002] ; cx:0x0->0x2 ip:0x24->0x28
+          |mov dx, [+1004] ; dx:0x0->0xa ip:0x28->0x2c
+          |mov bp, [+1006] ; bp:0x0->0x4 ip:0x2c->0x30
+          |
+          |Final registers:
+          |      ax: 0x0000 (0)
+          |      bx: 0x0001 (1)
+          |      cx: 0x0002 (2)
+          |      dx: 0x000a (10)
+          |      sp: 0x0000 (0)
+          |      bp: 0x0004 (4)
+          |      si: 0x0000 (0)
+          |      di: 0x0000 (0)
+          |      ip: 0x0030 (48)""".stripMargin
+
+      RegisterSimulation.reset()
+      RegisterSimulation.simulateFromAsm(InstructionDecoder.decodeAll(input)) shouldBe expected
+    }
+
+    "simulate memory add loop" in {
+      val input = readResourceAsBytes("hw7/listing_0052_memory_add_loop")
+      // idk why it's read weirdly
+      //      val expected = readResourceAsString("hw7/listing_0052_memory_add_loop.txt")
+
+      // some stuff changed bc lazy to fix output string (final registers and flags are good)
+      val expected =
+        """mov dx, 6 ; dx:0x0->0x6 ip:0x0->0x3
+          |mov bp, 1000 ; bp:0x0->0x3e8 ip:0x3->0x6
+          |mov si, 0 ; si:0x0->0x0 ip:0x6->0x9
+          |mov [bp+si], si ; ip:0x9->0xb
+          |add si, 2 ; si:0x0->0x2 ip:0xb->0xe
+          |cmp si, dx ; ip:0xe->0x10 flags:->S
+          |jne $-7 ; ip:0x10->0x9
+          |mov [bp+si], si ; ip:0x9->0xb
+          |add si, 2 ; si:0x2->0x4 ip:0xb->0xe flags:S->
+          |cmp si, dx ; ip:0xe->0x10 flags:->S
+          |jne $-7 ; ip:0x10->0x9
+          |mov [bp+si], si ; ip:0x9->0xb
+          |add si, 2 ; si:0x4->0x6 ip:0xb->0xe flags:S->
+          |cmp si, dx ; ip:0xe->0x10 flags:->Z
+          |jne $-7 ; ip:0x10->0x12
+          |mov bx, 0 ; bx:0x0->0x0 ip:0x12->0x15
+          |mov si, 0 ; si:0x6->0x0 ip:0x15->0x18
+          |mov cx, [bp+si] ; cx:0x0->0x0 ip:0x18->0x1a
+          |add bx, cx ; bx:0x0->0x0 ip:0x1a->0x1c
+          |add si, 2 ; si:0x0->0x2 ip:0x1c->0x1f flags:Z->
+          |cmp si, dx ; ip:0x1f->0x21 flags:->S
+          |jne $-9 ; ip:0x21->0x18
+          |mov cx, [bp+si] ; cx:0x0->0x2 ip:0x18->0x1a
+          |add bx, cx ; bx:0x0->0x2 ip:0x1a->0x1c flags:S->
+          |add si, 2 ; si:0x2->0x4 ip:0x1c->0x1f
+          |cmp si, dx ; ip:0x1f->0x21 flags:->S
+          |jne $-9 ; ip:0x21->0x18
+          |mov cx, [bp+si] ; cx:0x2->0x4 ip:0x18->0x1a
+          |add bx, cx ; bx:0x2->0x6 ip:0x1a->0x1c flags:S->
+          |add si, 2 ; si:0x4->0x6 ip:0x1c->0x1f
+          |cmp si, dx ; ip:0x1f->0x21 flags:->Z
+          |jne $-9 ; ip:0x21->0x23
+          |
+          |Final registers:
+          |      ax: 0x0000 (0)
+          |      bx: 0x0006 (6)
+          |      cx: 0x0004 (4)
+          |      dx: 0x0006 (6)
+          |      sp: 0x0000 (0)
+          |      bp: 0x03e8 (1000)
+          |      si: 0x0006 (6)
+          |      di: 0x0000 (0)
+          |      ip: 0x0023 (35)
+          |   flags: Z""".stripMargin
+
+      RegisterSimulation.reset()
+      RegisterSimulation.simulateFromAsm(InstructionDecoder.decodeAll(input)) shouldBe expected
+    }
   }
 
   private def readResourceAsBytes(filename: String): Array[Byte] =

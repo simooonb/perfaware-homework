@@ -165,15 +165,15 @@ object InstructionDecoder {
     val address16BitsDisplacement = next.isModEffectiveAddressCalculation16BitsDisplacement
 
     val displacements =
-      if (effectiveAddress) Array.empty[Byte]
+      if (address16BitsDisplacement) Array(input(i + 2), input(i + 3))
       else if (address8BitsDisplacement) Array(input(i + 2))
-      else if (address16BitsDisplacement) Array(input(i + 2), input(i + 3))
+      else if (effectiveAddress) Array.empty[Byte]
       else Array.empty[Byte]
 
     val nextIndex =
-      if (regToReg || effectiveAddress) i + 2
+      if (address16BitsDisplacement) i + 4
       else if (address8BitsDisplacement) i + 3
-      else if (address16BitsDisplacement) i + 4
+      else if (regToReg || effectiveAddress) i + 2
       else i + 2
 
     val result =
@@ -205,7 +205,7 @@ object InstructionDecoder {
     val rm           = b & (0xff >>> 5)
     val mod          = (b & (3 << 6)) >>> 6
     val immediate    = BigInt(1, data.reverse).toInt
-    val displacement = if (displacements.nonEmpty) BigInt(1, displacements).toInt else 0
+    val displacement = if (displacements.nonEmpty) BigInt(1, displacements.reverse).toInt else 0
 
     val register =
       if (mod.toBinaryString == "11") {
@@ -230,7 +230,7 @@ object InstructionDecoder {
     val wide             = b1.toBinaryString.last == '1'
     val regIsDestination = (b1 & 2) >>> 1 == 1 // 1 REG is destination, 0 REG is source
 
-    val displacement = if (displacements.nonEmpty) BigInt(1, displacements).toInt else 0
+    val displacement = if (displacements.nonEmpty) BigInt(1, displacements.reverse).toInt else 0
     val rmRegister   = effectiveAddressDecode(mod, rm, displacement)
     val regRegister  = movRegisterDecode(reg, wide)
     val opcode       = instruction.opcode
