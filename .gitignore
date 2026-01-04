@@ -49,3 +49,9 @@ build/
 .idea/
 
 nasm
+
+hotspot.log
+src/main/resources/expected.f64
+src/main/resources/input.json
+src-rs/expected.f64
+src-rs/input.json
